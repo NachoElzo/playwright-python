@@ -1,0 +1,18 @@
+# Backup virtual environments
+env.bak/
+venv.bak/
+# Python cache
+__pycache__/
+
+# VS Code settings
+.vscode/
+.DS_Store
+
+# Playwright output
+playwright-report/
+
+# pytest cache
+.cache/
+
+# pipenv lock file
+Pipfile.lock
