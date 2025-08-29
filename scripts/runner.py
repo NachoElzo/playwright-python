@@ -117,7 +117,15 @@ def run_pytest(args_list, headless=None, allure_report=False, clear_results=True
         if "PWDEBUG" in env:
             del env["PWDEBUG"]
     
-    subprocess.run(["pytest"] + args_list, check=True, env=env)
+    try:
+        result = subprocess.run(["pytest"] + args_list, check=False, env=env)
+        if result.returncode != 0:
+            print(f"Warning: Tests failed with exit code {result.returncode}")
+            return False
+        return True
+    except Exception as e:
+        print(f"Error running tests: {e}")
+        return False
 
 def main():
     parser = argparse.ArgumentParser(description="Run Playwright tests with custom options.")
@@ -155,19 +163,59 @@ def main():
             run_pytest(["--browser", device["browser"], "--device", device["name"]], headless=True, allure_report=args.allure, clear_results=False)
     elif args.all_browsers:
         print(f"Running tests on {len(BROWSERS)} browsers...")
+        failed_browsers = []
         for i, browser in enumerate(BROWSERS):
             print(f"Testing browser {i+1}/{len(BROWSERS)}: {browser}")
-            run_pytest(["--browser", browser], headless=True, allure_report=args.allure, clear_results=False)
+            success = run_pytest(["--browser", browser], headless=True, allure_report=args.allure, clear_results=False)
+            if not success:
+                failed_browsers.append(browser)
+        
+        if failed_browsers:
+            print(f"Some browsers failed: {', '.join(failed_browsers)}")
+        else:
+            print("All browsers completed successfully!")
+            
     elif args.all_browsers_headed:
         print(f"Running tests on {len(BROWSERS)} browsers (headed mode)...")
+        failed_browsers = []
         for i, browser in enumerate(BROWSERS):
             print(f"Testing browser {i+1}/{len(BROWSERS)}: {browser}")
-            run_pytest(["--browser", browser], headless=False, allure_report=args.allure, clear_results=False)
-    elif args.all_mobiles_headed:
-        print(f"Running tests on {len(MOBILE_DEVICES)} mobile devices (headed mode)...")
+            success = run_pytest(["--browser", browser], headless=False, allure_report=args.allure, clear_results=False)
+            if not success:
+                failed_browsers.append(browser)
+        
+        if failed_browsers:
+            print(f"Some browsers failed: {', '.join(failed_browsers)}")
+        else:
+            print("All browsers completed successfully!")
+            
+    elif args.all_mobile:
+        print(f"Running tests on {len(MOBILE_DEVICES)} mobile devices...")
+        failed_devices = []
         for i, device in enumerate(MOBILE_DEVICES):
             print(f"Testing device {i+1}/{len(MOBILE_DEVICES)}: {device['name']} ({device['browser']})")
-            run_pytest(["--browser", device["browser"], "--device", device["name"]], headless=False, allure_report=args.allure, clear_results=False)
+            success = run_pytest(["--browser", device["browser"], "--device", device["name"]], headless=True, allure_report=args.allure, clear_results=False)
+            if not success:
+                failed_devices.append(device["name"])
+        
+        if failed_devices:
+            print(f"Some devices failed: {', '.join(failed_devices)}")
+        else:
+            print("All mobile devices completed successfully!")
+            
+    elif args.all_mobiles_headed:
+        print(f"Running tests on {len(MOBILE_DEVICES)} mobile devices (headed mode)...")
+        failed_devices = []
+        for i, device in enumerate(MOBILE_DEVICES):
+            print(f"Testing device {i+1}/{len(MOBILE_DEVICES)}: {device['name']} ({device['browser']})")
+            success = run_pytest(["--browser", device["browser"], "--device", device["name"]], headless=False, allure_report=args.allure, clear_results=False)
+            if not success:
+                failed_devices.append(device["name"])
+        
+        if failed_devices:
+            print(f"Some devices failed: {', '.join(failed_devices)}")
+        else:
+            print("All mobile devices completed successfully!")
     else:
         # Default: run normally
         run_pytest([], headless=headless, allure_report=args.allure)
