@@ -11,6 +11,10 @@ __pycache__/
 # Playwright output
 playwright-report/
 
+# Allure Reports
+allure-results/
+allure-report/
+
 # pytest cache
 .cache/
 

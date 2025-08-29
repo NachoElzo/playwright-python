@@ -53,6 +53,29 @@ python scripts/runner.py --device "Pixel 4" --headed
 
 # Run all mobile devices (headed, with their native browsers)
 python scripts/runner.py --all-mobiles-headed
+
+# GENERATE ALLURE REPORTS (CONSOLIDATED)
+
+# Run tests with Allure report (headless)
+python scripts/runner.py --allure-report
+
+# Run tests with specific browser and Allure report
+python scripts/runner.py --browser chromium --allure-report
+
+# Run tests in headed mode with Allure report
+python scripts/runner.py --headed --allure-report
+
+# Run all browsers with Allure report (CONSOLIDATED)
+python scripts/runner.py --all-browsers --allure-report
+
+# Run all mobile devices with Allure report (CONSOLIDATED)
+python scripts/runner.py --all-mobile --allure-report
+
+# Run all mobile devices headed with Allure report (CONSOLIDATED)
+python scripts/runner.py --all-mobiles-headed --allure-report
+
+# View Allure report after generation
+allure open allure-report
 """
 import subprocess
 import argparse
@@ -66,7 +89,15 @@ MOBILE_DEVICES = [
 ]
 BROWSERS = ["chromium", "firefox", "webkit"]
 
-def run_pytest(args_list, headless=None):
+def run_pytest(args_list, headless=None, allure_report=False, clear_results=True):
+    if allure_report:
+        # Add Allure reporting options
+        args_list.extend(["--alluredir", "allure-results"])
+        if clear_results:
+            print("Allure results will be generated in 'allure-results' directory")
+        else:
+            print("Appending results to existing 'allure-results' directory")
+    
     print(f"Running: pytest {' '.join(args_list)}")
     env = os.environ.copy()
     
@@ -97,31 +128,70 @@ def main():
     parser.add_argument("--all-browsers", action="store_true", help="Run tests on all browsers (headless)")
     parser.add_argument("--all-browsers-headed", action="store_true", help="Run tests on all browsers (headed)")
     parser.add_argument("--all-mobiles-headed", action="store_true", help="Run tests on all mobile devices (headed)")
+    parser.add_argument("--allure-report", action="store_true", help="Generate Allure test report")
     args = parser.parse_args()
 
     headless = None
     if args.headed:
         headless = False
 
+    # Create allure-results directory if needed
+    if args.allure_report:
+        os.makedirs("allure-results", exist_ok=True)
+        # Clear previous results for fresh start
+        import shutil
+        if os.path.exists("allure-results"):
+            shutil.rmtree("allure-results")
+        os.makedirs("allure-results", exist_ok=True)
+
     if args.device:
-        run_pytest(["--browser", args.browser or "webkit", "--device", args.device], headless=headless)
+        run_pytest(["--browser", args.browser or "webkit", "--device", args.device], headless=headless, allure_report=args.allure_report)
     elif args.browser:
-        run_pytest(["--browser", args.browser], headless=headless)
+        run_pytest(["--browser", args.browser], headless=headless, allure_report=args.allure_report)
     elif args.all_mobile:
-        for device in MOBILE_DEVICES:
-            run_pytest(["--browser", device["browser"], "--device", device["name"]], headless=True)
+        print(f"Running tests on {len(MOBILE_DEVICES)} mobile devices...")
+        for i, device in enumerate(MOBILE_DEVICES):
+            print(f"Testing device {i+1}/{len(MOBILE_DEVICES)}: {device['name']} ({device['browser']})")
+            run_pytest(["--browser", device["browser"], "--device", device["name"]], headless=True, allure_report=args.allure_report, clear_results=False)
     elif args.all_browsers:
-        for browser in BROWSERS:
-            run_pytest(["--browser", browser], headless=True)
+        print(f"Running tests on {len(BROWSERS)} browsers...")
+        for i, browser in enumerate(BROWSERS):
+            print(f"Testing browser {i+1}/{len(BROWSERS)}: {browser}")
+            run_pytest(["--browser", browser], headless=True, allure_report=args.allure_report, clear_results=False)
     elif args.all_browsers_headed:
-        for browser in BROWSERS:
-            run_pytest(["--browser", browser], headless=False)
+        print(f"Running tests on {len(BROWSERS)} browsers (headed mode)...")
+        for i, browser in enumerate(BROWSERS):
+            print(f"Testing browser {i+1}/{len(BROWSERS)}: {browser}")
+            run_pytest(["--browser", browser], headless=False, allure_report=args.allure_report, clear_results=False)
     elif args.all_mobiles_headed:
-        for device in MOBILE_DEVICES:
-            run_pytest(["--browser", device["browser"], "--device", device["name"]], headless=False)
+        print(f"Running tests on {len(MOBILE_DEVICES)} mobile devices (headed mode)...")
+        for i, device in enumerate(MOBILE_DEVICES):
+            print(f"Testing device {i+1}/{len(MOBILE_DEVICES)}: {device['name']} ({device['browser']})")
+            run_pytest(["--browser", device["browser"], "--device", device["name"]], headless=False, allure_report=args.allure_report, clear_results=False)
     else:
         # Default: run normally
-        run_pytest([], headless=headless)
+        run_pytest([], headless=headless, allure_report=args.allure_report)
+    
+    # Generate Allure report if requested
+    if args.allure_report:
+        print(f"\nGenerating consolidated Allure report...")
+        try:
+            subprocess.run(["allure", "generate", "allure-results", "--clean", "-o", "allure-report"], check=True)
+            print("Allure report generated successfully!")
+            print("To view the report, run: allure open allure-report")
+            
+            # Count total tests
+            import glob
+            result_files = glob.glob("allure-results/*.json")
+            print(f"Total test results collected: {len(result_files)} files")
+            
+        except subprocess.CalledProcessError:
+            print("Warning: Allure command not found. Please install Allure CLI to generate HTML reports.")
+            print("Results are saved in 'allure-results' directory.")
+        except FileNotFoundError:
+            print("Warning: Allure CLI not installed. Please install it to generate HTML reports.")
+            print("Install with: brew install allure (on macOS)")
+            print("Results are saved in 'allure-results' directory.")
 
 if __name__ == "__main__":
     main()

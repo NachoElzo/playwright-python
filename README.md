@@ -54,8 +54,21 @@ pipenv shell
 # Instala Playwright y pytest
 pipenv install pytest-playwright
 
+# Instala Allure para reportes consolidados
+pipenv install allure-pytest
+
 # (Opcional) Instala los navegadores de Playwright
 pipenv run playwright install
+```
+
+### 5. Install Allure CLI for HTML Reports
+Para generar reportes HTML con Allure, necesitas instalar el CLI de Allure:
+```sh
+# Install Allure CLI on macOS
+brew install allure
+
+# Verify installation
+allure --version
 ```
 ## Usage Commands
 ```sh
@@ -70,6 +83,35 @@ python your_script.py
 
 # Run Playwright tests
 python -m pytest
+
+# Run tests with Allure reporting
+python -m pytest --alluredir=allure-results
+
+# Generate Allure HTML report
+allure generate allure-results --clean -o allure-report
+
+# Open Allure report in browser
+allure open allure-report
+```
+
+## Test Runner Usage
+El proyecto incluye un runner personalizado con múltiples opciones:
+
+```sh
+# Run on single browser
+python scripts/runner.py --browser chromium
+
+# Run on single device
+python scripts/runner.py --device "iPhone 12 Pro"
+
+# Run on all browsers with Allure reporting
+python scripts/runner.py --all-browsers --allure-report
+
+# Run on all mobile devices with Allure reporting
+python scripts/runner.py --all-mobile --allure-report
+
+# Run in headed mode (see browser)
+python scripts/runner.py --all-browsers-headed --allure-report
 ```
 
 # Playwright tips
