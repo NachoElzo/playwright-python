@@ -105,13 +105,13 @@ python scripts/runner.py --browser chromium
 python scripts/runner.py --device "iPhone 12 Pro"
 
 # Run on all browsers with Allure reporting
-python scripts/runner.py --all-browsers --allure-report
+python scripts/runner.py --all-browsers --allure
 
 # Run on all mobile devices with Allure reporting
-python scripts/runner.py --all-mobile --allure-report
+python scripts/runner.py --all-mobile --allure
 
 # Run in headed mode (see browser)
-python scripts/runner.py --all-browsers-headed --allure-report
+python scripts/runner.py --all-browsers-headed --allure
 ```
 
 # Playwright tips

@@ -128,7 +128,7 @@ def main():
     parser.add_argument("--all-browsers", action="store_true", help="Run tests on all browsers (headless)")
     parser.add_argument("--all-browsers-headed", action="store_true", help="Run tests on all browsers (headed)")
     parser.add_argument("--all-mobiles-headed", action="store_true", help="Run tests on all mobile devices (headed)")
-    parser.add_argument("--allure-report", action="store_true", help="Generate Allure test report")
+    parser.add_argument("--allure", action="store_true", help="Generate Allure test report")
     args = parser.parse_args()
 
     headless = None
@@ -136,7 +136,7 @@ def main():
         headless = False
 
     # Create allure-results directory if needed
-    if args.allure_report:
+    if getattr(args, 'allure', False):
         os.makedirs("allure-results", exist_ok=True)
         # Clear previous results for fresh start
         import shutil
@@ -145,35 +145,35 @@ def main():
         os.makedirs("allure-results", exist_ok=True)
 
     if args.device:
-        run_pytest(["--browser", args.browser or "webkit", "--device", args.device], headless=headless, allure_report=args.allure_report)
+        run_pytest(["--browser", args.browser or "webkit", "--device", args.device], headless=headless, allure_report=args.allure)
     elif args.browser:
-        run_pytest(["--browser", args.browser], headless=headless, allure_report=args.allure_report)
+        run_pytest(["--browser", args.browser], headless=headless, allure_report=args.allure)
     elif args.all_mobile:
         print(f"Running tests on {len(MOBILE_DEVICES)} mobile devices...")
         for i, device in enumerate(MOBILE_DEVICES):
             print(f"Testing device {i+1}/{len(MOBILE_DEVICES)}: {device['name']} ({device['browser']})")
-            run_pytest(["--browser", device["browser"], "--device", device["name"]], headless=True, allure_report=args.allure_report, clear_results=False)
+            run_pytest(["--browser", device["browser"], "--device", device["name"]], headless=True, allure_report=args.allure, clear_results=False)
     elif args.all_browsers:
         print(f"Running tests on {len(BROWSERS)} browsers...")
         for i, browser in enumerate(BROWSERS):
             print(f"Testing browser {i+1}/{len(BROWSERS)}: {browser}")
-            run_pytest(["--browser", browser], headless=True, allure_report=args.allure_report, clear_results=False)
+            run_pytest(["--browser", browser], headless=True, allure_report=args.allure, clear_results=False)
     elif args.all_browsers_headed:
         print(f"Running tests on {len(BROWSERS)} browsers (headed mode)...")
         for i, browser in enumerate(BROWSERS):
             print(f"Testing browser {i+1}/{len(BROWSERS)}: {browser}")
-            run_pytest(["--browser", browser], headless=False, allure_report=args.allure_report, clear_results=False)
+            run_pytest(["--browser", browser], headless=False, allure_report=args.allure, clear_results=False)
     elif args.all_mobiles_headed:
         print(f"Running tests on {len(MOBILE_DEVICES)} mobile devices (headed mode)...")
         for i, device in enumerate(MOBILE_DEVICES):
             print(f"Testing device {i+1}/{len(MOBILE_DEVICES)}: {device['name']} ({device['browser']})")
-            run_pytest(["--browser", device["browser"], "--device", device["name"]], headless=False, allure_report=args.allure_report, clear_results=False)
+            run_pytest(["--browser", device["browser"], "--device", device["name"]], headless=False, allure_report=args.allure, clear_results=False)
     else:
         # Default: run normally
-        run_pytest([], headless=headless, allure_report=args.allure_report)
+        run_pytest([], headless=headless, allure_report=args.allure)
     
     # Generate Allure report if requested
-    if args.allure_report:
+    if getattr(args, 'allure', False):
         print(f"\nGenerating consolidated Allure report...")
         try:
             subprocess.run(["allure", "generate", "allure-results", "--clean", "-o", "allure-report"], check=True)
