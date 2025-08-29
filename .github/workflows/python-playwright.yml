@@ -34,7 +34,7 @@ jobs:
             libxkbcommon0 \
             libgtk-3-0 \
             libgbm1 \
-            libasound2
+            libasound2t64
 
       - name: Install Playwright browsers
         run: pipenv run playwright install --with-deps
@@ -42,9 +42,9 @@ jobs:
       - name: Install Allure CLI
         run: |
           sudo apt-get install -y openjdk-11-jdk
-          wget https://github.com/allure-framework/allure2/releases/download/2.24.0/allure-2.24.0.tgz
-          sudo tar -zxvf allure-2.24.0.tgz -C /opt/
-          sudo ln -s /opt/allure-2.24.0/bin/allure /usr/bin/allure
+          sudo apt-get install -y npm
+          sudo npm install -g allure-commandline --save-dev
+          which allure
           allure --version
 
       - name: Run tests on all browsers
