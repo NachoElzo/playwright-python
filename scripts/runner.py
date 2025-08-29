@@ -57,22 +57,22 @@ python scripts/runner.py --all-mobiles-headed
 # GENERATE ALLURE REPORTS (CONSOLIDATED)
 
 # Run tests with Allure report (headless)
-python scripts/runner.py --allure-report
+python scripts/runner.py --allure
 
 # Run tests with specific browser and Allure report
-python scripts/runner.py --browser chromium --allure-report
+python scripts/runner.py --browser chromium --allure
 
 # Run tests in headed mode with Allure report
-python scripts/runner.py --headed --allure-report
+python scripts/runner.py --headed --allure
 
 # Run all browsers with Allure report (CONSOLIDATED)
-python scripts/runner.py --all-browsers --allure-report
+python scripts/runner.py --all-browsers --allure
 
 # Run all mobile devices with Allure report (CONSOLIDATED)
-python scripts/runner.py --all-mobile --allure-report
+python scripts/runner.py --all-mobile --allure
 
 # Run all mobile devices headed with Allure report (CONSOLIDATED)
-python scripts/runner.py --all-mobiles-headed --allure-report
+python scripts/runner.py --all-mobiles-headed --allure
 
 # View Allure report after generation
 allure open allure-report
